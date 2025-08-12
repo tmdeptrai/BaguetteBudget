@@ -1,0 +1,5 @@
+mcp:
+  server_name: "ExpenseTrackerMCP"
+  sheet_id: "1oyEU11yrWKCMCDS9wKiCr2C-mH3PuEc4HFGZZ0rehAU"
+  creds_file: "./creds/google_creds.json"
+  model: "Qwen3-0.6B" 
