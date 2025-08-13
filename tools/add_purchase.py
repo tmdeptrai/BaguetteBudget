@@ -14,7 +14,7 @@ def init_sheet():
     client = gspread.authorize(creds)
     return client.open_by_key(config['mcp']['sheet_id']).sheet1
 
-def add_expense(date, category, description, description_vi, amount, fee_or_cost):
+def add_expense(date, category, description, description_vi, fee, currency):
     sheet = init_sheet()
-    sheet.append_row([date, category, description, description_vi, amount, fee_or_cost])
-    return {"status": "success", "message": f"Added {amount} {fee_or_cost} for {category} on {date}"}
+    sheet.append_row([date, category, description, description_vi, fee, currency])
+    return {"status": "success", "message": f"Added {fee} {currency} for {category} on {date}"}
