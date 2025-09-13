@@ -19,7 +19,9 @@ def add_purchase_tool(date: str, category: str, description: str, description_vi
 def get_monthly_report_tool(year: int, month: int):
     return get_monthly_report(year, month)
 
-if __name__ == "__main__":
-    # Expose as HTTP server
-    mcp.run(transport="http")
+# if __name__ == "__main__":
+#     # Expose as HTTP server
+#     mcp.run(transport="http")
+
+# Just run: fastmcp run mcp_server.py:mcp --host 127.0.0.1 --port 8000 --transport http
 
