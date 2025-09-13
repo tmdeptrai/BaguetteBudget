@@ -1,12 +1,11 @@
+# client.py
 import asyncio
 from fastmcp import Client
 
-client = Client("http://localhost:8000")
+async def main():
+    # point to the full MCP path
+    async with Client("http://127.0.0.1:8000/mcp") as client:
+        await client.ping()                # sanity check
+        print("tools:", await client.list_tools())
 
-async def call_tool(name: str):
-    async with client:
-        result = await client.call_tool("greet", {"name": name})
-        print(result)
-
-asyncio.run(call_tool("Ford"))
-
+asyncio.run(main())
