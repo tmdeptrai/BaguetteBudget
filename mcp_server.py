@@ -1,3 +1,4 @@
+"""
 from fastmcp import FastMCP
 from tools.add_purchase import add_purchase
 from tools.monthly_report import get_monthly_report
@@ -21,3 +22,4 @@ def get_monthly_report_tool(year: int, month: int):
 if __name__ == "__main__":
     # Expose as HTTP server
     mcp.run()
+"""
