@@ -15,7 +15,7 @@ def init_sheet():
     client = gspread.authorize(creds)
     return client.open_by_key(config['mcp']['sheet_id']).sheet1
 
-def get_monthly_report(year, month):
+def monthly_report(year, month):
     sheet = init_sheet()
     data = sheet.get_all_records()
     filtered = [
@@ -39,3 +39,5 @@ def get_monthly_report(year, month):
         "by_category": by_category,
         "top_expenses": top_expenses
     }
+
+monthly_report(2025,8)

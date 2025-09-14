@@ -18,7 +18,7 @@ if not GEMINI_API_KEY:
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0,google_api_key=GEMINI_API_KEY,)
 
 # 2. MCP tool wrappers (these call your MCP server endpoints)
-client = Client("http://127.0.0.1:8000/")
+client = Client("http://127.0.0.1:8000/mcp")
 async def add_purchase_tool(date, category, description, description_vi, fee, currency):
     async with client:
         payload = {
@@ -33,7 +33,19 @@ async def add_purchase_tool(date, category, description, description_vi, fee, cu
         print(result)
         return result
 
-asyncio.run(add_purchase_tool("2025-13-09","food","test","thu nghiem","10","EUR"))
+# asyncio.run(add_purchase_tool("2025-09-13","food","test","thu nghiem",10,"EUR"))
+
+async def monthly_report_tool(year,month):
+    async with client:
+        payload = {
+            "year": year,
+            "month": month,
+        }
+        result = await client.call_tool("monthly_report",payload)
+        print(result)
+        return result
+
+asyncio.run(monthly_report_tool(2025,8))
 
 # def monthly_report_tool(month, year):
 #     res = requests.get(

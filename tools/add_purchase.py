@@ -18,3 +18,5 @@ def add_purchase(date, category, description, description_vi, fee, currency):
     sheet = init_sheet()
     sheet.append_row([date, category, description, description_vi, fee, currency])
     return {"status": "success", "message": f"Added {fee} {currency} for {category} on {date}"}
+
+# add_purchase("2025-09-13","Food","test","thu nghiem",10,"EUR")
