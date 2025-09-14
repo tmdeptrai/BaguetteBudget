@@ -2,6 +2,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 import yaml
+import time
 
 def init_sheet():
     config = yaml.safe_load(open("./config/mcp_client.yaml"))
@@ -15,15 +16,29 @@ def init_sheet():
     client = gspread.authorize(creds)
     return client.open_by_key(config['mcp']['sheet_id']).sheet1
 
-def monthly_report(year, month):
+def monthly_report(year=None, month=None):
+    # Get current date in YYYY-MM-DD format
+    current_date = time.strftime("%Y-%m-%d")
+    current_year = int(time.strftime("%Y"))
+    current_month = int(time.strftime("%m"))
+    
+    # Use current year/month if not provided
+    year = year or current_year
+    month = month or current_month
+
     sheet = init_sheet()
     data = sheet.get_all_records()
-    filtered = [
-        row for row in data
-        if datetime.strptime(row['Date'], "%Y-%m-%d").year == year
-        and datetime.strptime(row['Date'], "%Y-%m-%d").month == month
-    ]
-    
+
+    filtered = []
+    for row in data:
+        try:
+            row_date = datetime.strptime(row['Date'], "%Y-%m-%d")
+            if row_date.year == year and row_date.month == month:
+                filtered.append(row)
+        except ValueError:
+            # Skip rows with invalid or empty date
+            continue
+
     total = sum(float(row['Fee']) for row in filtered)
     by_category = {}
     for row in filtered:
@@ -33,6 +48,7 @@ def monthly_report(year, month):
     top_expenses = sorted(filtered, key=lambda x: float(x['Fee']), reverse=True)[:3]
     
     return {
+        "current_date": current_date,
         "year": year,
         "month": month,
         "total": total,
@@ -40,4 +56,5 @@ def monthly_report(year, month):
         "top_expenses": top_expenses
     }
 
-monthly_report(2025,8)
+# Now you can call it with no arguments to get the current month report
+print(monthly_report())

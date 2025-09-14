@@ -19,92 +19,78 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0,google_api_
 
 # 2. MCP tool wrappers (these call your MCP server endpoints)
 client = Client("http://127.0.0.1:8000/mcp")
-async def add_purchase_tool(date, category, description, description_vi, fee, currency):
-    async with client:
-        payload = {
-            "date": date,
-            "category": category,
-            "description": description,
-            "description_vi": description_vi,
-            "fee":fee,
-            "currency":currency
-        }
-        result = await client.call_tool("add_purchase", payload)
-        print(result)
-        return result
 
-# asyncio.run(add_purchase_tool("2025-09-13","food","test","thu nghiem",10,"EUR"))
+def add_purchase_tool(category, description, description_vi, fee):
+    async def _coro():
+        async with client:
+            payload = {
+                "category": category,
+                "description": description,
+                "description_vi": description_vi,
+                "fee": fee,
+            }
+            return await client.call_tool("add_purchase", payload)
+    return asyncio.run(_coro())
 
-async def monthly_report_tool(year,month):
-    async with client:
-        payload = {
-            "year": year,
-            "month": month,
-        }
-        result = await client.call_tool("monthly_report",payload)
-        print(result)
-        return result
+# asyncio.run(add_purchase_tool("food","test","thu nghiem",10))
 
-asyncio.run(monthly_report_tool(2025,8))
+def monthly_report_tool(year, month):
+    async def _coro():
+        async with client:
+            payload = {"year": year, "month": month}
+            return await client.call_tool("monthly_report", payload)
+    return asyncio.run(_coro())
 
-# def monthly_report_tool(month, year):
-#     res = requests.get(
-#         "http://localhost:8000/tools/monthly_report",
-#         params={"month": month, "year": year}
-#     )
-#     return res.json()
+# asyncio.run(monthly_report_tool(2025,8))
 
-# tools = [
-#     Tool(
-#         name="add_purchase",
-#         func=lambda x: add_purchase_tool(**(json.loads(x) if isinstance(x, str) else x)),
-#         description="Add a new purchase to Google Sheets. Input should be a dict with keys: item, amount, category, date"
-#     ),
-#     Tool(
-#         name="monthly_report",
-#         func=lambda x: monthly_report_tool(**(json.loads(x) if isinstance(x, str) else x)),
-#         description="Get a summary of purchases for a given month/year."
-#     )
-# ]
+tools = [
+    Tool(
+        name="add_purchase",
+        func=lambda x: add_purchase_tool(**(json.loads(x) if isinstance(x, str) else x)),
+        description="Add a new purchase to Google Sheets. Input should be a dict with keys: category, description, description_vi, fee"
+    ),
+    Tool(
+        name="monthly_report",
+        func=lambda x: monthly_report_tool(**(json.loads(x) if isinstance(x, str) else x)),
+        description="Get a summary of purchases for a given month/year."
+    )
+]
 
-# # 3. Prompt Template for Parsing
-# parser_prompt = ChatPromptTemplate.from_messages([
-#     ("system", "You are a helpful assistant that extracts structured data from user messages."),
-#     ("human", "User message: {input}\n\nExtract JSON with keys: item, amount, category, date (YYYY-MM-DD format).")
-# ])
+# 3. Prompt Template for Parsing
+list_of_categories = ["Rent","Utilities","Food","Transport","Health","Clothing(including laundry)","Entertainment","Travel","Education","Bank Fees / Taxes","Others"]
+parser_prompt = ChatPromptTemplate.from_messages([
+    ("system", (
+        "You are a helpful assistant that extracts structured data from user messages. "
+        "Return **ONLY** a single valid JSON object (no surrounding text, no backticks, "
+        "no markdown, nothing else). Keys required: category, description, description_vi, fee. "
+        "Use these categories: " + ", ".join(list_of_categories)
+    )),
+    ("human", "User message: {input}\n\nExtract JSON with keys: category, description, description_vi, fee")
+])
 
-# # 4. Initialize LangChain Agent
-# expense_agent = initialize_agent(
-#     tools,
-#     llm,
-#     agent="chat-conversational-react-description",
-#     verbose=True
-# )
+# 4. Initialize LangChain Agent
+expense_agent = initialize_agent(
+    tools,
+    llm,
+    agent="chat-conversational-react-description",
+    verbose=True
+)
 
-# def handle_user_input(user_message):
-#     # Step 1: Parse user message into JSON
-#     structured_data = llm.invoke(parser_prompt.format_messages(input=user_message))
-#     print(f"[DEBUG] Parsed Data: {structured_data.content}")
+chat_history=[]
+# ---- replace the sync handle_user_input(...) with this async version ----
+def handle_user_input(user_message):
+    structured_data = llm.invoke(parser_prompt.format_messages(input=user_message))
+    print(f"[DEBUG] Parsed Data: {structured_data.content}")
+    
+    result = expense_agent.invoke({
+        "input": f"Use the add_purchase tool with this JSON: {structured_data.content}",
+        "chat_history": chat_history
+    })
 
-#     # Optionally convert parsed content to dict (if it's a JSON string)
-#     try:
-#         parsed_dict = json.loads(structured_data.content)
-#     except json.JSONDecodeError:
-#         # Fallback (hardcode for debugging)
-#         parsed_dict = {
-#             "item": "lunch",
-#             "amount": 12,
-#             "category": "food",
-#             "date": "2023-10-26"
-#         }
+    chat_history.append({"role": "user", "content": user_message})
+    chat_history.append({"role": "assistant", "content": result})
 
-#     # Step 2: Tell agent to call the tool with structured data
-#     result = expense_agent.invoke({
-#         "input": f"Use the add_purchase tool with this JSON: {json.dumps(parsed_dict)}",
-#         "chat_history": []
-#     })
-#     return result
+    return result
 
-
-# if __name__ == "__main__":
-#     print(handle_user_input("Add 12 euros for lunch yesterday in Paris"))
+if __name__ == "__main__":
+    print(handle_user_input("Add 12 euros for lunch in Paris"))

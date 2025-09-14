@@ -12,8 +12,8 @@ async def health_check(request: Request) -> PlainTextResponse:
     return PlainTextResponse("OK")
 
 @mcp.tool(name="add_purchase", description="Add a new expense to Google Sheet")
-def add_purchase_tool(date: str, category: str, description: str, description_vi: str, fee: float, currency: str):
-    return add_purchase(date, category, description, description_vi, fee, currency)
+def add_purchase_tool(category: str, description: str, description_vi: str, fee: float):
+    return add_purchase(category, description, description_vi, fee)
 
 @mcp.tool(name="monthly_report", description="Get a monthly expense summary")
 def monthly_report_tool(year: int, month: int):

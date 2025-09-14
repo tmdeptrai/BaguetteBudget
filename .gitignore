@@ -1,7 +1,7 @@
 ./creds
 creds
 ./creds/google_creds.json
-./google_creds.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
