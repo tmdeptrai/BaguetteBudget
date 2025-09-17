@@ -1,20 +1,9 @@
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
-import yaml
 import time
 
-def init_sheet():
-    config = yaml.safe_load(open("./config/mcp_client.yaml"))
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive.file",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(config['mcp']['creds_file'], scope)
-    client = gspread.authorize(creds)
-    return client.open_by_key(config['mcp']['sheet_id']).sheet1
+import os,sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from ggsheet_functions import init_sheet
 
 def monthly_report(year=None, month=None):
     # Get current date in YYYY-MM-DD format
@@ -56,5 +45,9 @@ def monthly_report(year=None, month=None):
         "top_expenses": top_expenses
     }
 
-# Now you can call it with no arguments to get the current month report
-print(monthly_report())
+if __name__ == "__main__":
+    try:
+        print(monthly_report())
+        print("Success! monthly_report() works just fine!")
+    except Exception as e:
+        print(e)

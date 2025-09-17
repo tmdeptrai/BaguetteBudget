@@ -1,23 +1,9 @@
 import streamlit as st
 import pandas as pd
 from orchestration import handle_user_input, monthly_report_tool
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-import yaml
 from datetime import datetime
+from ggsheet_functions import init_sheet
 
-# --- CONFIG / GOOGLE SHEET INIT ---
-def init_sheet():
-    config = yaml.safe_load(open("./config/mcp_client.yaml"))
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive.file",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(config['mcp']['creds_file'], scope)
-    client = gspread.authorize(creds)
-    return client.open_by_key(config['mcp']['sheet_id']).sheet1
 
 sheet = init_sheet()
 
