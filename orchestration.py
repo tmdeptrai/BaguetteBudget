@@ -77,7 +77,7 @@ expense_agent = initialize_agent(
 )
 
 chat_history=[]
-# ---- replace the sync handle_user_input(...) with this async version ----
+
 def handle_user_input(user_message):
     structured_data = llm.invoke(parser_prompt.format_messages(input=user_message))
     print(f"[DEBUG] Parsed Data: {structured_data.content}")
@@ -93,4 +93,4 @@ def handle_user_input(user_message):
     return result
 
 if __name__ == "__main__":
-    print(handle_user_input("Add 12 euros for lunch in Paris"))
+    print(handle_user_input("Add a purchase of 19.45 euros for today's meat, vegetables and rice"))
